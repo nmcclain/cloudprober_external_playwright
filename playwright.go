@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 
 	"github.com/buger/jsonparser"
 )
@@ -36,14 +37,20 @@ type PlaywrightTest struct {
 	// Index string
 }
 
-func runPlaywright(suiteDir string) (PlaywrightResults, error) {
+func runPlaywright(suiteDir string, debug bool) (PlaywrightResults, error) {
 	res := PlaywrightResults{AllTestsSuccessful: true}
 	if len(suiteDir) < 1 {
 		return res, fmt.Errorf("Invalid test: %s", suiteDir)
 	}
 	args := []string{"playwright", "test", "--reporter", "json", suiteDir}
-	// log.Printf("Running Playwright: %s %s", NPXCMD, strings.Join(args, " "))
+	if debug {
+		log.Printf("Running Playwright: %s %s", NPXCMD, strings.Join(args, " "))
+	}
 	out, _ := exec.Command(NPXCMD, args...).Output() // no err check here - we get JSON even when the test fails
+
+	if debug {
+		log.Printf("Playwright output: %s", out)
+	}
 
 	var err error
 	res.PlaywrightVersion, err = jsonparser.GetString(out, "config", "version")
@@ -114,6 +121,8 @@ func runPlaywright(suiteDir string) (PlaywrightResults, error) {
 		res.Suites = append(res.Suites, suite)
 	}, "suites")
 
-	// log.Printf("Successful Playwright: %s %s", NPXCMD, strings.Join(args, " "))
+	if debug {
+		log.Printf("Final result: %+v", res)
+	}
 	return res, nil
 }

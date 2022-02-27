@@ -8,7 +8,7 @@ import (
 	"github.com/docopt/docopt-go"
 )
 
-const version = "0.0.1"
+const version = "0.0.2"
 
 var usage = `cloudprober_external_playwright: a cloudprober external probe wrapper to run playwright tests
 Usage:
@@ -17,6 +17,7 @@ Usage:
   cloudprober_external_playwright --version
 
 Options:
+  -d, --debug                  Enable debugging output
   --version                    Show version
   -h, --help                   Show this screen
 `
@@ -30,7 +31,7 @@ func main() {
 	sanitizeMetricRE := regexp.MustCompile(`[\.\\\/ =]`) // "It must match the regex [a-zA-Z_:][a-zA-Z0-9_:]*."
 	suiteTitle := sanitizeMetricRE.ReplaceAllString(testdir, "_")
 
-	r, err := runPlaywright(testdir)
+	r, err := runPlaywright(testdir, args["--debug"].(bool))
 	if err != nil {
 		log.Printf("Error with Playwright execution: %s", err)
 		fmt.Printf("all_tests_passing{suite=%s} 0\n", suiteTitle)
