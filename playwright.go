@@ -9,8 +9,6 @@ import (
 	"github.com/buger/jsonparser"
 )
 
-const NPXCMD = "/usr/local/bin/npx"
-
 type PlaywrightResults struct {
 	AllTestsSuccessful bool
 	PlaywrightVersion  string
@@ -37,16 +35,18 @@ type PlaywrightTest struct {
 	// Index string
 }
 
-func runPlaywright(suiteDir string, debug bool) (PlaywrightResults, error) {
+func runPlaywright(npxCmd string, pwArgs []string, suiteDir string, debug bool) (PlaywrightResults, error) {
 	res := PlaywrightResults{AllTestsSuccessful: true}
 	if len(suiteDir) < 1 {
 		return res, fmt.Errorf("Invalid test: %s", suiteDir)
 	}
-	args := []string{"playwright", "test", "--reporter", "json", suiteDir}
+	args := []string{"playwright", "test"}
+	args = append(args, pwArgs...)
+	args = append(args, []string{"--reporter", "json", suiteDir}...)
 	if debug {
-		log.Printf("Running Playwright: %s %s", NPXCMD, strings.Join(args, " "))
+		log.Printf("Running Playwright: %s %s", npxCmd, strings.Join(args, " "))
 	}
-	out, _ := exec.Command(NPXCMD, args...).Output() // no err check here - we get JSON even when the test fails
+	out, _ := exec.Command(npxCmd, args...).Output() // no err check here - we get JSON even when the test fails
 
 	if debug {
 		log.Printf("Playwright output: %s", out)
